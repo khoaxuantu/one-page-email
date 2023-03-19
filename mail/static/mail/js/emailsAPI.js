@@ -1,15 +1,16 @@
 // Call event listener when DOM is DOM is loaded 
 document.addEventListener('DOMContentLoaded', function() {
     // Add submit button
-    document.querySelector('')
+    document.getElementById('compose-form').addEventListener("submit", submitEmail);
 })
 
 
 // Fetch POST emails api
-function submitEmails() {
+function submitEmail(event) {
     const header = document.querySelectorAll('input');
     const content = document.querySelector('textarea');
-    fetch('emails', {
+    // event.preventDefault();
+    fetch('/emails', {
         method: 'POST',
         body: JSON.stringify({
             recipients: header[1].value,
@@ -21,5 +22,9 @@ function submitEmails() {
     .then(result => {
         // Print result
         console.log(result);
+        // Clear out composition fields
+        document.querySelector('#compose-recipients').value = '';
+        document.querySelector('#compose-subject').value = '';
+        document.querySelector('#compose-body').value = '';
     })
 }
