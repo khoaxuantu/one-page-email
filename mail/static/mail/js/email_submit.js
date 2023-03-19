@@ -1,4 +1,4 @@
-// Call event listener when DOM is DOM is loaded 
+// Call event listener when DOM is loaded 
 document.addEventListener('DOMContentLoaded', function() {
     // Add submit button
     document.getElementById('compose-form').addEventListener("submit", submitEmail);
