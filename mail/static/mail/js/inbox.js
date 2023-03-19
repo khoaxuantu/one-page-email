@@ -44,7 +44,7 @@ function load_mailbox(mailbox) {
       const newEmail = new mDOM.Email(email);
       const newRow = newEmail.toRow();
       newRow.addEventListener("click", () => {
-        load_single_mail(email.id);
+        load_single_mail(email.id, mailbox);
       });
       // If a mail has been read, change it to gray color
       if (email.read) {
@@ -56,7 +56,7 @@ function load_mailbox(mailbox) {
 }
 
 
-function load_single_mail(id) {
+function load_single_mail(id, mailbox) {
 
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
@@ -84,10 +84,12 @@ function load_single_mail(id) {
   })
 
   // Update the email to read
-  fetch(`/emails/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify({
-      read: true
+  if (mailbox === "inbox") {
+    fetch(`/emails/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        read: true
+      })
     })
-  })
+  }
 }
