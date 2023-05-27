@@ -1,5 +1,6 @@
 # Email Single Page Application
-Design a front-end for an email client that makes API calls to send and receive emails.
+Design a front-end for an email client that makes API calls to send and receive emails with plain JavaScript.
+Don't ask me why not use any SPA framework :kissing:
 
 ## Preview
 ![mail spa preview](mail_spa.png)
