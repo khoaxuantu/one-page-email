@@ -18,11 +18,8 @@ function compose_email(isReply) {
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
 
-  // Clear out composition fields
   if (!isReply) {
-    document.querySelector('#compose-recipients').value = '';
-    document.querySelector('#compose-subject').value = '';
-    document.querySelector('#compose-body').value = '';
+    mDOM.clearCompositionFields();
   }
 }
 

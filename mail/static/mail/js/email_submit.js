@@ -1,3 +1,5 @@
+import { clearCompositionFields } from "./lib/modifyDOM.js";
+
 // Call event listener when DOM is loaded 
 document.addEventListener('DOMContentLoaded', function() {
     // Add submit button
@@ -24,12 +26,7 @@ async function submitEmail(event) {
     // If receive status 400, pop an alert and abort submitting
     if (fetchAPI.status === 400) alert(result.error);
     else {
-        
-        // Clear out composition fields
-        document.querySelector('#compose-recipients').value = '';
-        document.querySelector('#compose-subject').value = '';
-        document.querySelector('#compose-body').value = '';
-
+        clearCompositionFields();
         location.reload();
     }
 }
