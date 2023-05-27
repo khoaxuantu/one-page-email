@@ -36,8 +36,8 @@ function load_mailbox(mailbox) {
   fetch(`/emails/${mailbox}`)
   .then(response => response.json())
   .then(emails => {
-    console.log(`Call ${mailbox}`)
-    console.log(emails);
+    // console.log(`Call ${mailbox}`)
+    // console.log(emails);
     const emails_view = document.getElementById('emails-view');
     emails.forEach(email => {
       const newEmail = new mDOM.Email(email);
@@ -97,7 +97,7 @@ class EmailView
     this.view.append(mDOM.addDiv(`<b>To:</b> ${this.email.recipients}`)); // To: recipients@recipients.com
     this.view.append(mDOM.addDiv(`<b>Subject:</b> ${this.email.subject}`)); // Subject: Email's subject
     this.view.append(mDOM.addDiv(`<b>Timestamp:</b> ${this.email.timestamp}`)); // Timestamp: 
-    console.log(this.email)
+    // console.log(this.email)
   }
   
   buildBtnRow() {
