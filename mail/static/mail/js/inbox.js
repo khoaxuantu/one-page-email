@@ -179,8 +179,8 @@ async function updateArchive(props) {
 }
 
 // Update the email to read
-function fetchRead(id) {
-  fetch(`/emails/${id}`, {
+async function fetchRead(id) {
+  await fetch(`/emails/${id}`, {
     method: 'PUT',
     body: JSON.stringify({
       read: true
