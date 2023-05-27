@@ -44,7 +44,7 @@ function load_mailbox(mailbox) {
       const newEmail = new mDOM.Email(email);
       const newRow = newEmail.toRow();
       newRow.addEventListener("click", () => {
-        load_single_mail(email.id, mailbox);
+        load_single_mail(email.id);
       });
       // If a mail has been read, change it to gray color
       if (email.read) {
@@ -56,7 +56,7 @@ function load_mailbox(mailbox) {
 }
 
 
-function load_single_mail(id, mailbox) {
+async function load_single_mail(id) {
 
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
@@ -66,7 +66,7 @@ function load_single_mail(id, mailbox) {
   document.querySelector('#emails-view').innerHTML = "";
 
   // Load single email api
-  fetch(`/emails/${id}`)
+  await fetch(`/emails/${id}`)
   .then(response => response.json())
   .then(email => {
     const email_view = document.getElementById('emails-view');
@@ -74,22 +74,69 @@ function load_single_mail(id, mailbox) {
     email_view.append(mDOM.addDiv(`<b>To:</b> ${email.recipients}`));
     email_view.append(mDOM.addDiv(`<b>Subject:</b> ${email.subject}`));
     email_view.append(mDOM.addDiv(`<b>Timestamp:</b> ${email.timestamp}`));
+    console.log(email)
 
-    const newBtn = document.createElement("button");
-    newBtn.className = "btn btn-sm btn-outline-primary";
-    newBtn.innerHTML = "Reply";
-    email_view.append(newBtn);
+    // Create a row of buttons
+    const replyBtn = new mDOM.Button("Reply", "Reply").create();
+    addReplyBtnHandler(replyBtn);
+
+    const archiveStatus = !email.archived ? "Archive" : "Unarchive"
+    const archiveBtn = new mDOM.Button(archiveStatus, archiveStatus).create();
+    addArchiveBtnHandler(archiveBtn, {
+      id: id,
+      archived: email.archived,
+    });
+
+    const buttonRow = mDOM.addDiv();
+    buttonRow.className = "d-flex";
+    buttonRow.append(replyBtn);
+    buttonRow.append(archiveBtn);
+
+    email_view.append(buttonRow);
+
+    // Add email body
     email_view.append(document.createElement("hr"));
     email_view.append(mDOM.addDiv(`${email.body}`));
+
+    if (!email.read) {
+      updateRead(id);
+    }
   })
 
-  // Update the email to read
-  if (mailbox === "inbox") {
-    fetch(`/emails/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify({
-        read: true
-      })
+}
+
+function addReplyBtnHandler(button) {
+  button.addEventListener("click", () => {
+    
+  })
+}
+
+function addArchiveBtnHandler(button, props) {
+  button.addEventListener("click", () => {
+    archiveHandler(props);
+  })
+}
+
+async function archiveHandler(props) {
+  await updateArchive(props);
+  load_single_mail(props.id);
+}
+
+async function updateArchive(props) {
+  await fetch(`/emails/${props.id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      archived: !props.archived
     })
-  }
+  })
+}
+
+// Update the email to read
+function updateRead(id) {
+  fetch(`/emails/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      read: true
+    })
+  })
 }
