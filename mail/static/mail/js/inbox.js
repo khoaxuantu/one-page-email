@@ -6,22 +6,24 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#inbox').addEventListener('click', () => load_mailbox('inbox'));
   document.querySelector('#sent').addEventListener('click', () => load_mailbox('sent'));
   document.querySelector('#archived').addEventListener('click', () => load_mailbox('archive'));
-  document.querySelector('#compose').addEventListener('click', compose_email);
+  document.querySelector('#compose').addEventListener('click', () => compose_email(false));
 
   // By default, load the inbox
   load_mailbox('inbox');
 });
 
-function compose_email() {
+function compose_email(isReply) {
 
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
 
   // Clear out composition fields
-  document.querySelector('#compose-recipients').value = '';
-  document.querySelector('#compose-subject').value = '';
-  document.querySelector('#compose-body').value = '';
+  if (!isReply) {
+    document.querySelector('#compose-recipients').value = '';
+    document.querySelector('#compose-subject').value = '';
+    document.querySelector('#compose-body').value = '';
+  }
 }
 
 function load_mailbox(mailbox) {
@@ -66,49 +68,97 @@ async function load_single_mail(id) {
   document.querySelector('#emails-view').innerHTML = "";
 
   // Load single email api
-  await fetch(`/emails/${id}`)
-  .then(response => response.json())
-  .then(email => {
-    const email_view = document.getElementById('emails-view');
-    email_view.append(mDOM.addDiv(`<b>From:</b> ${email.sender}`));
-    email_view.append(mDOM.addDiv(`<b>To:</b> ${email.recipients}`));
-    email_view.append(mDOM.addDiv(`<b>Subject:</b> ${email.subject}`));
-    email_view.append(mDOM.addDiv(`<b>Timestamp:</b> ${email.timestamp}`));
-    console.log(email)
+  const fetchAPI = await fetch(`/emails/${id}`)
+  const emailData = await fetchAPI.json();
+  const email_view = new EmailView(emailData);
+  email_view.render();
+}
 
-    // Create a row of buttons
-    const replyBtn = new mDOM.Button("Reply", "Reply").create();
-    addReplyBtnHandler(replyBtn);
+/**
+ * Single email page builder
+ * 
+ * @param email the email data
+ * @param view the dom HTMLElement of for email's content
+ */
+class EmailView
+{
+  constructor(email) {
+    this.email = email;
+    this.view = document.getElementById('emails-view');
+  }
 
-    const archiveStatus = !email.archived ? "Archive" : "Unarchive"
-    const archiveBtn = new mDOM.Button(archiveStatus, archiveStatus).create();
-    addArchiveBtnHandler(archiveBtn, {
-      id: id,
-      archived: email.archived,
-    });
+  render() {
+    // Return the order of the page
+    this.buildHeader();
+    this.buildBtnRow();
+    this.buildBody();
+    this.updateRead();
+  }
 
+  buildHeader() {
+    this.view.append(mDOM.addDiv(`<b>From:</b> ${this.email.sender}`)); // From: sender@sender.com
+    this.view.append(mDOM.addDiv(`<b>To:</b> ${this.email.recipients}`)); // To: recipients@recipients.com
+    this.view.append(mDOM.addDiv(`<b>Subject:</b> ${this.email.subject}`)); // Subject: Email's subject
+    this.view.append(mDOM.addDiv(`<b>Timestamp:</b> ${this.email.timestamp}`)); // Timestamp: 
+    console.log(this.email)
+  }
+  
+  buildBtnRow() {
     const buttonRow = mDOM.addDiv();
     buttonRow.className = "d-flex";
+    
+    const replyBtn = createReplyBtn(this.email);
     buttonRow.append(replyBtn);
-    buttonRow.append(archiveBtn);
-
-    email_view.append(buttonRow);
-
-    // Add email body
-    email_view.append(document.createElement("hr"));
-    email_view.append(mDOM.addDiv(`${email.body}`));
-
-    if (!email.read) {
-      updateRead(id);
+    
+    // Archive button depends on email's archived status and does not apply to Sent email
+    if (!isSentEmail(this.email.sender)) {
+      const archiveStatus = !this.email.archived ? "Archive" : "Unarchive";
+      const archiveBtn = createArchiveBtn(archiveStatus, this.email);
+      buttonRow.append(archiveBtn);
     }
-  })
+
+    this.view.append(buttonRow);
+  }
+
+  buildBody() {
+    this.view.append(document.createElement("hr"));
+    this.view.append(mDOM.addDiv(`${this.email.body}`));
+  }
+
+  updateRead() {
+    if (!this.email.read) {
+      fetchRead(this.email.id);
+    }
+  }
 
 }
 
-function addReplyBtnHandler(button) {
+function createReplyBtn(email) {
+  const replyBtn = new mDOM.Button("Reply", "Reply").create();
+  addReplyBtnHandler(replyBtn, email);
+  return replyBtn;
+}
+
+function addReplyBtnHandler(button, email) {
   button.addEventListener("click", () => {
-    
+    compose_email(true);
+    document.querySelector('#compose-recipients').value = email.sender;
+    document.querySelector('#compose-subject').value = "Reply: " + email.subject;
   })
+}
+
+function isSentEmail(sender) {
+  const user = document.querySelector("#user-email").textContent;
+  return sender === user;
+}
+
+function createArchiveBtn(archiveStatus, email) {
+  const archiveBtn = new mDOM.Button(archiveStatus, archiveStatus).create();
+  addArchiveBtnHandler(archiveBtn, {
+    id: email.id,
+    archived: email.archived,
+  });
+  return archiveBtn;
 }
 
 function addArchiveBtnHandler(button, props) {
@@ -132,7 +182,7 @@ async function updateArchive(props) {
 }
 
 // Update the email to read
-function updateRead(id) {
+function fetchRead(id) {
   fetch(`/emails/${id}`, {
     method: 'PUT',
     body: JSON.stringify({
