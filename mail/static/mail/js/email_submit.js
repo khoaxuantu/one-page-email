@@ -6,11 +6,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 // Fetch POST emails api
-function submitEmail(event) {
+async function submitEmail(event) {
+    event.preventDefault();
     const header = document.querySelectorAll('input');
     const content = document.querySelector('textarea');
-    // event.preventDefault();
-    fetch('/emails', {
+
+    const fetchAPI = await fetch('/emails', {
         method: 'POST',
         body: JSON.stringify({
             recipients: header[1].value,
@@ -18,13 +19,17 @@ function submitEmail(event) {
             body: content.value
         })
     })
-    .then(response => response.json())
-    .then(result => {
-        // Print result
-        console.log(result);
+    const result = await fetchAPI.json();
+
+    // If receive status 400, pop an alert and abort submitting
+    if (fetchAPI.status === 400) alert(result.error);
+    else {
+        
         // Clear out composition fields
         document.querySelector('#compose-recipients').value = '';
         document.querySelector('#compose-subject').value = '';
         document.querySelector('#compose-body').value = '';
-    })
+
+        location.reload();
+    }
 }
