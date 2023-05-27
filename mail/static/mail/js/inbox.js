@@ -97,7 +97,7 @@ class EmailView
     this.view.append(mDOM.addDiv(`<b>To:</b> ${this.email.recipients}`)); // To: recipients@recipients.com
     this.view.append(mDOM.addDiv(`<b>Subject:</b> ${this.email.subject}`)); // Subject: Email's subject
     this.view.append(mDOM.addDiv(`<b>Timestamp:</b> ${this.email.timestamp}`)); // Timestamp: 
-    // console.log(this.email)
+    console.log(this.email)
   }
   
   buildBtnRow() {
@@ -140,8 +140,21 @@ function addReplyBtnHandler(button, email) {
   button.addEventListener("click", () => {
     compose_email(true);
     document.querySelector('#compose-recipients').value = email.sender;
-    document.querySelector('#compose-subject').value = "Reply: " + email.subject;
+    
+    // Only need one Re: in email's subject
+    const re = (haveRe(email.subject)) ? "" : "Re: ";
+    document.querySelector('#compose-subject').value = re + email.subject;
+    
+    // Prefill body
+    const hr = "------------------------------------------------------------------------------------";
+    const newBody = `On ${email.timestamp} ${email.sender} wrote: \n\n${email.body}\n\n${hr}\n\n`;
+    document.querySelector('#compose-body').placeholder = newBody;
   })
+}
+
+function haveRe(subject) {
+  const subjectArr = subject.split(" ");
+  return subjectArr[0] === "Re:";
 }
 
 function isSentEmail(sender) {

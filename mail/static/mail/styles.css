@@ -2,6 +2,10 @@ textarea {
     min-height: 400px !important;
 }
 
+#emails-view div {
+    white-space: pre-wrap;
+}
+
 .mail {
     cursor: pointer;
 }
