@@ -22,6 +22,12 @@ Don't ask me why not use any SPA framework :kissing:
 - [SQLite](https://www.sqlite.org/)
 
 ## Run (Local)
+Migrate the model to the database
+```bash
+python3 manage.py makemigrations && python3 manage.py migrate
+```
+
+Start the server
 ```bash
 python3 manage.py runserver
 ```
